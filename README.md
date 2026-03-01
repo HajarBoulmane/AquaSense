@@ -1,20 +1,35 @@
 # 💧 AquaSense - IoT Smart Water Monitoring
 
+**AquaSense** is an intelligent solution designed to help rural communities manage their water resources sustainably. By integrating IoT sensors with a mobile application, we provide real-time monitoring and predictive alerts to prevent water shortages.
+
+---
 [![Flutter](https://img.shields.io/badge/Framework-Flutter-02569B?logo=flutter)](https://flutter.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+## . Key Features
+* **Real-time Dashboard:** Precise visualization of water levels through interactive charts.
+* **Smart Alerts:** Instant notifications when water levels reach critical thresholds.
+* **AI Predictions:** Analysis of weather data to anticipate dry periods.
+* **Clean Architecture:** Structured code for maximum scalability.
 
-**AquaSense** est une solution intelligente conçue pour aider les communautés rurales à gérer durablement leurs ressources en eau. Grâce à l'intégration de capteurs IoT et d'une application mobile, nous permettons un suivi en temps réel et une prédiction des pénuries.
+---
 
-## 🌟 Fonctionnalités
-- **Dashboard Temps Réel :** Visualisation précise des niveaux d'eau via des graphiques.
-- **Alertes Intelligentes :** Notifications instantanées en cas de seuil critique.
-- **Prédictions IA :** Analyse des données météo pour anticiper les périodes sèches.
-- **Architecture Propre :** Code structuré pour une scalabilité maximale.
-
-## 🏗️ Structure du Projet
+##  . Project Structure
 ```text
 lib/
-├── models/      # Modèles de données (water_model.dart)
-├── screens/     # Interface utilisateur (Dashboard, Alerts, Stats)
-├── services/    # Logique métier et API (Firebase, IoT)
-└── main.dart    # Point d'entrée de l'application
+├── models/      # Data structures (water_model.dart)
+├── screens/     # UI Pages (Dashboard, Alerts, Stats)
+├── services/    # Business logic & APIs (Firebase, IoT)
+└── main.dart    # Application entry point
+```
+
+## Prerequisites
+
+- **Flutter SDK**: [Install Flutter](https://docs.flutter.dev/get-started/install)
+- **Dart SDK** (comes with Flutter)
+- **IDE**: Visual Studio Code, Android Studio, or IntelliJ IDEA
+
+
+## 1. Clone the Repository
+
+```bash
+git clonehttps://github.com/HajarBoulmane/AquaSense.git
