@@ -1,17 +1,20 @@
-# aqua_sense
+# 💧 AquaSense - IoT Smart Water Monitoring
 
-A new Flutter project.
+[![Flutter](https://img.shields.io/badge/Framework-Flutter-02569B?logo=flutter)](https://flutter.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Getting Started
+**AquaSense** est une solution intelligente conçue pour aider les communautés rurales à gérer durablement leurs ressources en eau. Grâce à l'intégration de capteurs IoT et d'une application mobile, nous permettons un suivi en temps réel et une prédiction des pénuries.
 
-This project is a starting point for a Flutter application.
+## 🌟 Fonctionnalités
+- **Dashboard Temps Réel :** Visualisation précise des niveaux d'eau via des graphiques.
+- **Alertes Intelligentes :** Notifications instantanées en cas de seuil critique.
+- **Prédictions IA :** Analyse des données météo pour anticiper les périodes sèches.
+- **Architecture Propre :** Code structuré pour une scalabilité maximale.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🏗️ Structure du Projet
+```text
+lib/
+├── models/      # Modèles de données (water_model.dart)
+├── screens/     # Interface utilisateur (Dashboard, Alerts, Stats)
+├── services/    # Logique métier et API (Firebase, IoT)
+└── main.dart    # Point d'entrée de l'application
