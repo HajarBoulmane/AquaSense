@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'screens/dashboard.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const AquaSenseApp());
+void main() {
+  runApp(const MyApp());
 }
 
-class AquaSenseApp extends StatelessWidget {
-  const AquaSenseApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,11 +14,8 @@ class AquaSenseApp extends StatelessWidget {
       title: 'AquaSense',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0077B6),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.cyan),
+        scaffoldBackgroundColor: const Color(0xFF03080F),
       ),
       home: const DashboardScreen(),
     );
