@@ -1,46 +1,109 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
-
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
-
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="aqua_sense">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>aqua_sense</title>
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AquaSense — Smart Water Monitoring Morocco</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+  <!-- Root mount point — shell + all pages are injected here -->
+  <div id="root"></div>
+
+  <!-- External libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Bootstrap loader (ES module) -->
+  <script type="module">
+    import { initApp, App, MOROCCO_CITIES, loadWeather } from './app.js';
+
+    // ── Page conponents to load in order ──────────────────────
+    const PAGES = [
+      'conponents/shell.html',
+      'conponents/page-dashboard.html',
+      'conponents/page-map.html',
+      'conponents/page-wells.html',
+      'conponents/page-alerts.html',
+      'conponents/page-predictions.html',
+      'conponents/page-weather.html',
+      'conponents/page-history.html',
+      'conponents/page-firebase.html',
+      'conponents/page-settings.html',
+    ];
+
+    // ── Load all conponents then boot the app ─────────────────
+    async function loadconponents() {
+      // Load shell first into #root
+      const shellRes  = await fetch('conponents/shell.html');
+      const shellHtml = await shellRes.text();
+      document.getElementById('root').innerHTML = shellHtml;
+
+      // Load all pages into #pages-container
+      const pagesContainer = document.getElementById('pages-container');
+      const pageFiles = PAGES.slice(1); // skip shell.html
+      for (const file of pageFiles) {
+        const res  = await fetch(file);
+        const html = await res.text();
+        pagesContainer.insertAdjacentHTML('beforeend', html);
+      }
+    }
+
+    // ── Boot sequence ────────────────────────────────────────
+    async function boot() {
+      await loadconponents();
+
+      // Start the app
+      initApp();
+
+      // Build city chips for weather page
+      const chipsContainer = document.getElementById('city-chips');
+      if (chipsContainer) {
+        MOROCCO_CITIES.forEach(city => {
+          const chip = document.createElement('div');
+          chip.className    = 'city-chip';
+          chip.dataset.city = city.name;
+          chip.textContent  = city.name;
+          chip.onclick      = () => loadWeather(city);
+          chipsContainer.appendChild(chip);
+        });
+        loadWeather(MOROCCO_CITIES[0]);
+        chipsContainer.firstChild.classList.add('active');
+      }
+
+      // City search
+      window.searchCity = function() {
+        const input = document.getElementById('city-input').value.trim();
+        if (!input) return;
+        const found = MOROCCO_CITIES.find(c => c.name.toLowerCase().includes(input.toLowerCase()));
+        if (found) {
+          loadWeather(found);
+        } else {
+          window.toast('w', `City "${input}" not in preset list — using Casablanca data`);
+          loadWeather(MOROCCO_CITIES[0]);
+        }
+      };
+
+      // Region filter for city chips
+      window.filterCitiesByRegion = function(region) {
+        document.querySelectorAll('.city-chip').forEach(c => {
+          const city = MOROCCO_CITIES.find(x => x.name === c.dataset.city);
+          c.style.display = (!region || city?.region === region) ? '' : 'none';
+        });
+      };
+
+      // Clock in topbar
+      setInterval(() => {
+        const el = document.getElementById('last-ts');
+        if (el) el.textContent = new Date().toLocaleTimeString();
+      }, 1000);
+    }
+
+    boot();
+  </script>
+
 </body>
 </html>
