@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
-import 'screens/dashboard.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'firebase_options.dart';
+import 'screens/main_shell.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const AquaSenseApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class AquaSenseApp extends StatelessWidget {
+  const AquaSenseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,10 +22,20 @@ class MyApp extends StatelessWidget {
       title: 'AquaSense',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.cyan),
-        scaffoldBackgroundColor: const Color(0xFF03080F),
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0A1628),
+        colorScheme: const ColorScheme.dark(
+          primary:   Color(0xFF00B4FF),
+          secondary: Color(0xFF00FFC8),
+          error:     Color(0xFFFF3B5C),
+          surface:   Color(0xFF0F1F38),
+        ),
+        textTheme: GoogleFonts.dmSansTextTheme(
+          ThemeData.dark().textTheme,
+        ),
+        useMaterial3: true,
       ),
-      home: const DashboardScreen(),
+      home: const MainShell(),
     );
   }
 }

@@ -24,7 +24,7 @@ from datetime import datetime
 
 # ── FIREBASE CONFIG ────────────────────────────────────────────
 FIREBASE_URL = "https://aquasense-58345-default-rtdb.europe-west1.firebasedatabase.app"
-FIREBASE_SECRET = "YOUR_DATABASE_SECRET_KEY"   # ← paste your secret here
+FIREBASE_SECRET = "02WhgLtHdWcakPUUAgPQUojRoZiMfKS3mF7k91VM"   # ← paste your secret here
 
 # ── UPDATE INTERVAL ────────────────────────────────────────────
 UPDATE_EVERY_SECONDS = 60   # change to 10 for faster demo updates
