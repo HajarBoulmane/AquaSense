@@ -21,24 +21,24 @@
   <script type="module">
     import { initApp, App, MOROCCO_CITIES, loadWeather } from './app.js';
 
-    // ── Page conponents to load in order ──────────────────────
+    // ── Page components to load in order ──────────────────────
     const PAGES = [
-      'conponents/shell.html',
-      'conponents/page-dashboard.html',
-      'conponents/page-map.html',
-      'conponents/page-wells.html',
-      'conponents/page-alerts.html',
-      'conponents/page-predictions.html',
-      'conponents/page-weather.html',
-      'conponents/page-history.html',
-      'conponents/page-firebase.html',
-      'conponents/page-settings.html',
+      'components/shell.html',
+      'components/page-dashboard.html',
+      'components/page-map.html',
+      'components/page-wells.html',
+      'components/page-alerts.html',
+      'components/page-predictions.html',
+      'components/page-weather.html',
+      'components/page-history.html',
+      'components/page-firebase.html',
+      'components/page-settings.html',
     ];
 
-    // ── Load all conponents then boot the app ─────────────────
-    async function loadconponents() {
+    // ── Load all components then boot the app ─────────────────
+    async function loadcomponents() {
       // Load shell first into #root
-      const shellRes  = await fetch('conponents/shell.html');
+      const shellRes  = await fetch('components/shell.html');
       const shellHtml = await shellRes.text();
       document.getElementById('root').innerHTML = shellHtml;
 
@@ -54,7 +54,7 @@
 
     // ── Boot sequence ────────────────────────────────────────
     async function boot() {
-      await loadconponents();
+      await loadcomponents();
 
       // Start the app
       initApp();
