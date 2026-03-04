@@ -1,0 +1,63 @@
+<!-- PAGE: SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="g2">
+    <div>
+      <div class="card mb">
+        <div class="card-hd"><span class="card-title">🔔 Alert Thresholds</span></div>
+        <div class="s-section">
+          <div class="s-row">
+            <div class="s-info"><p data-i18n="criticalThresh">Critical threshold</p><span>Alert when level drops below this %</span></div>
+            <input class="input-field" type="number" id="thresh-critical" value="20" min="5" max="60" style="width:75px">
+          </div>
+          <div class="s-row">
+            <div class="s-info"><p data-i18n="warnThresh">Warning threshold</p><span>Warning below this %</span></div>
+            <input class="input-field" type="number" id="thresh-warn" value="40" min="10" max="80" style="width:75px">
+          </div>
+        </div>
+      </div>
+      <div class="card mb">
+        <div class="card-hd"><span class="card-title">📡 Notifications</span></div>
+        <div class="s-section">
+          <div class="s-row"><div class="s-info"><p>SMS Alerts</p><span>SMS on critical events</span></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="s-row"><div class="s-info"><p>Email Reports</p><span>Daily summary to authorities</span></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="s-row"><div class="s-info"><p>Push Notifications</p><span>In-app alerts</span></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card mb">
+        <div class="card-hd"><span class="card-title">🌍 Region &amp; Language</span></div>
+        <div class="s-section">
+          <div class="s-row">
+            <div class="s-info"><p>Language</p><span>Interface language</span></div>
+            <select class="input-field lang-select" id="lang-select-settings" onchange="App.changeLang(this.value)" style="width:140px">
+              <option value="en">🇬🇧 English</option>
+              <option value="fr">🇫🇷 Français</option>
+              <option value="ar">🇲🇦 العربية</option>
+            </select>
+          </div>
+          <div class="s-row">
+            <div class="s-info"><p>Units</p><span>Measurement system</span></div>
+            <select class="input-field" style="width:120px"><option>Metric (m³)</option><option>Imperial</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="card mb">
+        <div class="card-hd"><span class="card-title">🤖 AI &amp; Data</span></div>
+        <div class="s-section">
+          <div class="s-row"><div class="s-info"><p>AI Predictions</p><span>Forecasting from sensor data</span></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="s-row"><div class="s-info"><p>Weather Integration</p><span>OpenWeatherMap</span></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+          <div class="s-row"><div class="s-info"><p>Firebase Sync</p><span>Real-time RTDB</span></div><div class="toggle on" style="pointer-events:none"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-title">🔥 Firebase</span></div>
+        <div class="s-section">
+          <div class="s-row"><div class="s-info"><p>Project</p><span>aquasense-58345</span></div><span class="badge ok">● Live</span></div>
+          <div class="s-row"><div class="s-info"><p>Region</p><span>europe-west1</span></div><strong style="font-size:12px;color:var(--accent)">EU</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-grad" onclick="App.saveSettings()" data-i18n="save">💾 Save Settings to Firebase</button>
+</div>

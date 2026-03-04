@@ -1,0 +1,31 @@
+<!-- PAGE: WELLS & TANKS -->
+<div class="page" id="page-wells">
+  <div class="card mb">
+    <div class="card-hd">
+      <span class="card-title">🪣 All Water Sources — Live Firebase Data</span>
+      <span class="live-tag">● LIVE</span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th data-i18n="name">Name</th>
+          <th data-i18n="type">Type</th>
+          <th data-i18n="level">Level %</th>
+          <th data-i18n="volume">Volume m³</th>
+          <th data-i18n="temp">Temp °C</th>
+          <th data-i18n="ph">pH</th>
+          <th>Region</th>
+          <th data-i18n="lastSeen">Last Seen</th>
+          <th data-i18n="status">Status</th>
+        </tr></thead>
+        <tbody id="wells-tbody">
+          <tr><td colspan="9" class="empty">⏳ Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title">📊 Volume Distribution</span></div>
+    <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+  </div>
+</div>
