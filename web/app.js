@@ -458,11 +458,20 @@ async function writeAlertsToFirebase(list) {
 // LEAFLET MAP (real OpenStreetMap tiles)
 // ══════════════════════════════════════════════
 function initMap() {
-  if (leafletMap) return;
+  const mapEl = document.getElementById('leaflet-map');
+  if (!mapEl) { console.warn('leaflet-map div not found'); return; }
+
+  // If already initialized, just refresh size and markers
+  if (leafletMap) {
+    leafletMap.invalidateSize();
+    updateMap(Object.values(sensors));
+    return;
+  }
+
   // Morocco bounds: roughly lat 27–36, lon -14 to -1
   leafletMap = L.map('leaflet-map', {
     center:[31.5, -6.0], zoom:5,
-    minZoom:5, maxZoom:14,
+    minZoom:4, maxZoom:14,
     maxBounds:[[20,-18],[37,0]]
   });
 
@@ -472,8 +481,10 @@ function initMap() {
     maxZoom:18
   }).addTo(leafletMap);
 
-  // Draw Morocco outline hint
   updateMap(Object.values(sensors));
+
+  // Extra resize after tiles load
+  setTimeout(()=>{ leafletMap.invalidateSize(); }, 500);
 }
 
 function updateMap(list) {
@@ -755,11 +766,13 @@ export const App = {
     $('notif-panel')?.classList.remove('show');
     closeSidebar();
 
-    // Init map lazily
+    // Init map lazily — longer delay to ensure partial DOM is ready
     if (pageId==='map') setTimeout(()=>{
       initMap();
       updateMap(Object.values(sensors));
-    },100);
+      // Force Leaflet to recalculate size after page transition
+      if (leafletMap) setTimeout(()=>{ leafletMap.invalidateSize(); }, 200);
+    },300);
     // Init weather lazily
     if (pageId==='weather') setTimeout(()=>{
       if (!$('weather-forecast').children.length || $('weather-forecast').querySelector('.weather-loading')) {
@@ -850,6 +863,9 @@ export const App = {
 // expose for HTML onclick
 window.App = App;
 window.loadWeather = loadWeather;
+
+// Export initMap so index.html can pre-warm the map
+export function initMapPublic() { initMap(); }
 
 // ── SIDEBAR ───────────────────────────────────────────────────
 function closeSidebar() { $('sidebar')?.classList.remove('open'); $('overlay')?.classList.remove('show'); }

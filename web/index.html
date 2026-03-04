@@ -19,9 +19,9 @@
 
   <!-- Bootstrap loader (ES module) -->
   <script type="module">
-    import { initApp, App, MOROCCO_CITIES, loadWeather } from './app.js';
+    import { initApp, App, MOROCCO_CITIES, loadWeather, initMapPublic } from './app.js';
 
-    // ── Page components to load in order ──────────────────────
+    // ── Page partials to load in order ──────────────────────
     const PAGES = [
       'components/shell.html',
       'components/page-dashboard.html',
@@ -35,8 +35,8 @@
       'components/page-settings.html',
     ];
 
-    // ── Load all components then boot the app ─────────────────
-    async function loadcomponents() {
+    // ── Load all partials then boot the app ─────────────────
+    async function loadPartials() {
       // Load shell first into #root
       const shellRes  = await fetch('components/shell.html');
       const shellHtml = await shellRes.text();
@@ -54,10 +54,16 @@
 
     // ── Boot sequence ────────────────────────────────────────
     async function boot() {
-      await loadcomponents();
+      await loadPartials();
 
       // Start the app
       initApp();
+
+      // Pre-warm the map after a short delay so it's ready when user clicks Map View
+      setTimeout(() => {
+        const mapEl = document.getElementById('leaflet-map');
+        if (mapEl) initMapPublic();
+      }, 800);
 
       // Build city chips for weather page
       const chipsContainer = document.getElementById('city-chips');
