@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'screens/login_screen.dart'; // ← add this
+import 'screens/login_screen.dart';
 
 import 'firebase_options.dart';
 import 'screens/main_shell.dart';
@@ -37,7 +38,21 @@ class AquaSenseApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              backgroundColor: Color(0xFF0A1628),
+              body: Center(
+                child: CircularProgressIndicator(color: Color(0xFF00D4FF)),
+              ),
+            );
+          }
+          if (snapshot.hasData) return const MainShell();
+          return const LoginScreen();
+        },
+      ),
     );
   }
 }
