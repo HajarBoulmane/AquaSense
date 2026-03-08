@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/responsive.dart';
+import '../utils/lang.dart';
 import '../services/firebase_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -13,116 +14,107 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   double _critical = 20;
   double _warning  = 40;
-  String _lang     = 'en';
-  bool _smsAlerts  = true;
-  bool _emailReports = true;
-  bool _pushNotifs = true;
-  bool _aiPredictions = true;
+  bool _smsAlerts         = true;
+  bool _emailReports      = true;
+  bool _pushNotifs        = true;
+  bool _aiPredictions     = true;
   bool _weatherIntegration = false;
-  bool _saving = false;
+
+  // Auto-save debounce
+  void _autoSave() {
+    FirebaseService().saveSettings(
+      criticalThreshold: _critical.round(),
+      warningThreshold:  _warning.round(),
+      language:          langNotifier.lang,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final lang = LangProvider.of(context);
+
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: R.maxW(context)),
         child: ListView(
           padding: EdgeInsets.all(R.pad(context)),
-      children: [
+          children: [
 
-        // ── Thresholds ─────────────────────────────────────────
-        _section('🔔 Alert Thresholds', [
-          _sliderRow('Critical threshold', _critical, 5, 60, AquaColors.danger,
-            (v) => setState(() => _critical = v)),
-          _sliderRow('Warning threshold', _warning, 10, 80, AquaColors.warn,
-            (v) => setState(() => _warning = v)),
-        ]),
-        const SizedBox(height: 14),
+            // ── Alert Thresholds ──────────────────────────────
+            _section(lang.t('alertThresholds'), [
+              _sliderRow(lang.t('critThreshold'), _critical, 5, 60, AquaColors.danger,
+                (v) { setState(() => _critical = v); _autoSave(); }),
+              _sliderRow(lang.t('warnThreshold'), _warning, 10, 80, AquaColors.warn,
+                (v) { setState(() => _warning = v); _autoSave(); }),
+            ]),
+            const SizedBox(height: 14),
 
-        // ── Notifications ───────────────────────────────────────
-        _section('📡 Notifications', [
-          _toggleRow('SMS Alerts',        'SMS on critical events',      _smsAlerts,         (v) => setState(() => _smsAlerts = v)),
-          _toggleRow('Email Reports',     'Daily summary to authorities', _emailReports,      (v) => setState(() => _emailReports = v)),
-          _toggleRow('Push Notifications','In-app alerts',               _pushNotifs,        (v) => setState(() => _pushNotifs = v)),
-        ]),
-        const SizedBox(height: 14),
+            // ── Notifications ─────────────────────────────────
+            _section(lang.t('notifications'), [
+              _toggleRow(lang.t('smsAlerts'),   lang.t('smsDesc'),   _smsAlerts,
+                (v) { setState(() => _smsAlerts = v); _autoSave(); }),
+              _toggleRow(lang.t('emailReports'), lang.t('emailDesc'), _emailReports,
+                (v) { setState(() => _emailReports = v); _autoSave(); }),
+              _toggleRow(lang.t('pushNotifs'),   lang.t('pushDesc'),  _pushNotifs,
+                (v) { setState(() => _pushNotifs = v); _autoSave(); }),
+            ]),
+            const SizedBox(height: 14),
 
-        // ── Language ────────────────────────────────────────────
-        _section('🌍 Language', [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: DropdownButton<String>(
-              value: _lang,
-              dropdownColor: AquaColors.surface2,
-              isExpanded: true,
-              underline: Container(height: 1, color: AquaColors.border),
-              items: const [
-                DropdownMenuItem(value: 'en', child: Text('🇬🇧 English')),
-                DropdownMenuItem(value: 'fr', child: Text('🇫🇷 Français')),
-                DropdownMenuItem(value: 'ar', child: Text('🇲🇦 العربية')),
-              ],
-              onChanged: (v) => setState(() => _lang = v!),
-            ),
-          ),
-        ]),
-        const SizedBox(height: 14),
+            // ── Language ──────────────────────────────────────
+            _section(lang.t('language'), [
+              const SizedBox(height: 6),
+              Row(children: [
+                _langChip('🇬🇧', 'English', 'en', lang),
+                const SizedBox(width: 10),
+                _langChip('🇫🇷', 'Français', 'fr', lang),
+                const SizedBox(width: 10),
+                _langChip('🇲🇦', 'العربية', 'ar', lang),
+              ]),
+              const SizedBox(height: 6),
+            ]),
+            const SizedBox(height: 14),
 
-        // ── AI & Data ───────────────────────────────────────────
-        _section('🤖 AI & Data', [
-          _toggleRow('AI Predictions',      'Forecasting from sensor data', _aiPredictions,      (v) => setState(() => _aiPredictions = v)),
-          _toggleRow('Weather Integration', 'OpenWeatherMap',               _weatherIntegration, (v) => setState(() => _weatherIntegration = v)),
-          _toggleRow('Firebase Sync',       'Real-time RTDB',               true,                null),
-        ]),
-        const SizedBox(height: 14),
-
-        // ── Firebase info ────────────────────────────────────────
-        _section('🔥 Firebase', [
-          _infoRow('Project',  'aquasense-58345'),
-          _infoRow('Region',   'europe-west1'),
-          _infoRow('Status',   '● Connected'),
-        ]),
-        const SizedBox(height: 24),
-
-        // Save button
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AquaColors.accent,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: _saving ? null : _save,
-            child: _saving
-              ? const SizedBox(width: 20, height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-              : const Text('💾 Save Settings to Firebase',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-          ),
-        ),
-        ],
+            // ── AI & Data ─────────────────────────────────────
+            _section(lang.t('aiData'), [
+              _toggleRow(lang.t('aiPred'),    lang.t('aiPredDesc'),      _aiPredictions,
+                (v) { setState(() => _aiPredictions = v); _autoSave(); }),
+              _toggleRow(lang.t('weatherInt'), lang.t('weatherIntDesc'), _weatherIntegration,
+                (v) { setState(() => _weatherIntegration = v); _autoSave(); }),
+              _toggleRow(lang.t('firebaseSync'), lang.t('firebaseSyncDesc'), true, null),
+            ]),
+          ],
         ),
       ),
     );
   }
 
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    await FirebaseService().saveSettings(
-      criticalThreshold: _critical.round(),
-      warningThreshold:  _warning.round(),
-      language:          _lang,
-    );
-    setState(() => _saving = false);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('✅ Settings saved to Firebase!'),
-          backgroundColor: AquaColors.accent2.withOpacity(0.9),
+  // ── Language chip ────────────────────────────────────
+  Widget _langChip(String flag, String label, String code, LangNotifier lang) {
+    final active = lang.lang == code;
+    return Expanded(child: GestureDetector(
+      onTap: () {
+        langNotifier.setLang(code);
+        _autoSave();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: active ? AquaColors.accent.withOpacity(0.15) : AquaColors.surface2,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: active ? AquaColors.accent : AquaColors.border,
+            width: active ? 2 : 1),
         ),
-      );
-    }
+        child: Column(children: [
+          Text(flag, style: const TextStyle(fontSize: 22)),
+          const SizedBox(height: 4),
+          Text(label, style: TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w600,
+            color: active ? AquaColors.accent : AquaColors.muted)),
+        ]),
+      ),
+    ));
   }
 
   Widget _section(String title, List<Widget> children) => Container(
@@ -130,8 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     decoration: BoxDecoration(
       color: AquaColors.surface,
       borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: AquaColors.border),
-    ),
+      border: Border.all(color: AquaColors.border)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
       const SizedBox(height: 12),
@@ -144,14 +135,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(label, style: const TextStyle(fontSize: 13)),
-        Text('${value.round()}%', style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+        Text('${value.round()}%',
+          style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 13)),
       ]),
-      Slider(
-        value: value, min: min, max: max,
-        activeColor: color,
-        inactiveColor: AquaColors.border,
-        onChanged: onChanged,
-      ),
+      Slider(value: value, min: min, max: max,
+        activeColor: color, inactiveColor: AquaColors.border,
+        onChanged: onChanged),
     ]);
 
   Widget _toggleRow(String title, String subtitle, bool value,
@@ -160,22 +149,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(children: [
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title,    style: const TextStyle(fontSize: 13)),
+          Text(title, style: const TextStyle(fontSize: 13)),
           Text(subtitle, style: TextStyle(fontSize: 11, color: AquaColors.muted)),
         ])),
-        Switch(
-          value: value,
-          activeColor: AquaColors.accent,
-          onChanged: onChanged,
-        ),
+        Switch(value: value, activeColor: AquaColors.accent, onChanged: onChanged),
       ]),
     );
-
-  Widget _infoRow(String label, String value) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
-    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(label, style: TextStyle(fontSize: 12, color: AquaColors.muted)),
-      Text(value,  style: TextStyle(fontSize: 12, color: AquaColors.accent, fontWeight: FontWeight.w600)),
-    ]),
-  );
 }
