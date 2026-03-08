@@ -1,6 +1,7 @@
 // screens/main_shell.dart
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_theme.dart';
 import '../services/firebase_service.dart';
 import '../models/sensor_model.dart';
@@ -13,6 +14,7 @@ import 'predictions_screen.dart';
 import 'weather_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
+import 'login_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -49,18 +51,68 @@ class _MainShellState extends State<MainShell> {
   ];
 
   final _navItems = const [
-    BottomNavigationBarItem(icon: Icon(Icons.dashboard),       label: 'Dashboard'),
-    BottomNavigationBarItem(icon: Icon(Icons.map),             label: 'Map'),
-    BottomNavigationBarItem(icon: Icon(Icons.water),           label: 'Wells'),
-    BottomNavigationBarItem(icon: Icon(Icons.notifications),   label: 'Alerts'),
-    BottomNavigationBarItem(icon: Icon(Icons.psychology),      label: 'AI'),
-    BottomNavigationBarItem(icon: Icon(Icons.cloud),           label: 'Weather'),
-    BottomNavigationBarItem(icon: Icon(Icons.show_chart),      label: 'History'),
-    BottomNavigationBarItem(icon: Icon(Icons.settings),        label: 'Settings'),
+    BottomNavigationBarItem(icon: Icon(Icons.dashboard),     label: 'Dashboard'),
+    BottomNavigationBarItem(icon: Icon(Icons.map),           label: 'Map'),
+    BottomNavigationBarItem(icon: Icon(Icons.water),         label: 'Wells'),
+    BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+    BottomNavigationBarItem(icon: Icon(Icons.psychology),    label: 'AI'),
+    BottomNavigationBarItem(icon: Icon(Icons.cloud),         label: 'Weather'),
+    BottomNavigationBarItem(icon: Icon(Icons.show_chart),    label: 'History'),
+    BottomNavigationBarItem(icon: Icon(Icons.settings),      label: 'Settings'),
   ];
+
+  void _showProfileMenu(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final name = user?.displayName ?? 'AquaSense User';
+    final email = user?.email ?? '';
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF0D1F38),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _AvatarWidget(user: user, size: 64),
+            const SizedBox(height: 12),
+            Text(name,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 4),
+            Text(email,
+              style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await FirebaseAuth.instance.signOut();
+                  if (context.mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.logout_rounded, size: 16),
+                label: const Text('Sign Out'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFFF3B5C),
+                  side: const BorderSide(color: Color(0xFFFF3B5C)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
     final criticalCount = _sensors
         .where((s) => s.status == SensorStatus.critical || !s.online)
         .length;
@@ -81,39 +133,6 @@ class _MainShellState extends State<MainShell> {
           )),
         ]),
         actions: [
-          // Live indicator
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: _connected
-                ? AquaColors.accent2.withOpacity(0.15)
-                : AquaColors.muted.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: _connected ? AquaColors.accent2 : AquaColors.muted,
-                width: 1,
-              ),
-            ),
-            child: Row(children: [
-              Container(
-                width: 6, height: 6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _connected ? AquaColors.accent2 : AquaColors.muted,
-                ),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                _connected ? '🔥 Firebase Live' : 'Connecting…',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: _connected ? AquaColors.accent2 : AquaColors.muted,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ]),
-          ),
           // Alert badge
           if (criticalCount > 0)
             Stack(children: [
@@ -135,11 +154,18 @@ class _MainShellState extends State<MainShell> {
                 ),
               ),
             ]),
-          const SizedBox(width: 8),
+
+          // User avatar
+          GestureDetector(
+            onTap: () => _showProfileMenu(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: _AvatarWidget(user: user, size: 34),
+            ),
+          ),
         ],
       ),
 
-      // Pass sensors down via InheritedWidget pattern (simple approach)
       body: SensorsProvider(
         sensors: _sensors,
         child: _screens[_currentIndex],
@@ -162,6 +188,52 @@ class _MainShellState extends State<MainShell> {
           items: _navItems,
         ),
       ),
+    );
+  }
+}
+
+// ── Avatar widget ─────────────────────────────────────────────
+class _AvatarWidget extends StatelessWidget {
+  final User? user;
+  final double size;
+  const _AvatarWidget({required this.user, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = user?.displayName ?? 'A';
+    final photoUrl = user?.photoURL;
+    final initials = name.trim().split(' ')
+        .map((e) => e.isNotEmpty ? e[0] : '')
+        .take(2)
+        .join()
+        .toUpperCase();
+
+    return Container(
+      width: size, height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF00D4FF), Color(0xFF0077B6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00D4FF).withOpacity(0.3),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: photoUrl != null
+          ? ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover))
+          : Center(
+              child: Text(initials,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: size * 0.35,
+                )),
+            ),
     );
   }
 }

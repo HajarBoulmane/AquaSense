@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'screens/login_screen.dart'; // ← add this
 
 import 'firebase_options.dart';
 import 'screens/main_shell.dart';
@@ -35,7 +36,7 @@ class AquaSenseApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MainShell(),
+      home: const LoginScreen(),
     );
   }
 }
