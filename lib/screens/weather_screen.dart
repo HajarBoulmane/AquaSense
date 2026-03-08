@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 
 class WeatherScreen extends StatefulWidget {
   const WeatherScreen({super.key});
@@ -43,12 +44,15 @@ class _WeatherScreenState extends State<WeatherScreen> {
     final total   = rains.fold(0.0, (a, b) => a + b);
     final days    = ['TODAY','MON','TUE','WED','THU','FRI','SAT'];
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: R.maxW(context)),
+        child: ListView(
+          padding: EdgeInsets.all(R.pad(context)),
+          children: [
         // City selector
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(R.pad(context)),
           decoration: BoxDecoration(
             color: AquaColors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -130,7 +134,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
         // Water impact card
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(R.pad(context)),
           decoration: BoxDecoration(
             color: AquaColors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -147,7 +151,9 @@ class _WeatherScreenState extends State<WeatherScreen> {
             ),
           ]),
         ),
-      ],
+        ],
+        ),
+      ),
     );
   }
 }

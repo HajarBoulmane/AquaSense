@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 import '../models/sensor_model.dart';
 import 'main_shell.dart';
 
@@ -33,12 +34,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     final maxLen = _history.values.fold(0, (a, v) => a > v.length ? a : v.length);
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: R.maxW(context)),
+        child: ListView(
+          padding: EdgeInsets.all(R.pad(context)),
+          children: [
         // Chart
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(R.pad(context)),
           decoration: BoxDecoration(
             color: AquaColors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -101,7 +105,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
         // Event log
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(R.pad(context)),
           decoration: BoxDecoration(
             color: AquaColors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -127,7 +131,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             }),
           ]),
         ),
-      ],
+        ],
+        ),
+      ),
     );
   }
 }

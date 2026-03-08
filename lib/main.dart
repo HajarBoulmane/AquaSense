@@ -23,12 +23,12 @@ class AquaSenseApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0A1628),
+        scaffoldBackgroundColor: const Color(0xFF060D1A),
         colorScheme: const ColorScheme.dark(
           primary:   Color(0xFF00B4FF),
           secondary: Color(0xFF00FFC8),
           error:     Color(0xFFFF3B5C),
-          surface:   Color(0xFF0F1F38),
+          surface:   Color(0xFF0B1629),
         ),
         textTheme: GoogleFonts.dmSansTextTheme(
           ThemeData.dark().textTheme,

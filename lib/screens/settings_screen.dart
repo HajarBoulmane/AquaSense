@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 import '../services/firebase_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -22,8 +23,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: R.maxW(context)),
+        child: ListView(
+          padding: EdgeInsets.all(R.pad(context)),
       children: [
 
         // ── Thresholds ─────────────────────────────────────────
@@ -97,7 +101,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
           ),
         ),
-      ],
+        ],
+        ),
+      ),
     );
   }
 
@@ -120,7 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _section(String title, List<Widget> children) => Container(
-    padding: const EdgeInsets.all(16),
+    padding: EdgeInsets.all(R.pad(context)),
     decoration: BoxDecoration(
       color: AquaColors.surface,
       borderRadius: BorderRadius.circular(14),
