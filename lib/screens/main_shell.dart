@@ -63,76 +63,98 @@ class _MainShellState extends State<MainShell> {
     BottomNavigationBarItem(icon: Icon(Icons.show_chart),    label: 'History'),
     BottomNavigationBarItem(icon: Icon(Icons.settings),      label: 'Settings'),
   ];
+void _showProfileMenu(BuildContext context) {
+  final user  = FirebaseAuth.instance.currentUser;
+  final name  = user?.displayName ?? 'AquaSense User';
+  final email = user?.email ?? '';
 
-  void _showProfileMenu(BuildContext context) {
-    final user  = FirebaseAuth.instance.currentUser;
-    final name  = user?.displayName ?? 'AquaSense User';
-    final email = user?.email ?? '';
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF0D1F38),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _AvatarWidget(user: user, size: 64),
+          const SizedBox(height: 12),
+          Text(name,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
+          const SizedBox(height: 4),
+          Text(email,
+            style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
+          const SizedBox(height: 20),
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF0D1F38),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _AvatarWidget(user: user, size: 64),
-            const SizedBox(height: 12),
-            Text(name,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
-            const SizedBox(height: 4),
-            Text(email,
-              style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
-            const SizedBox(height: 16),
-
-            // ── Reclamation button inside profile menu ──────
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const ReclamationScreen()));
-                },
-                icon: const Icon(Icons.report_problem_outlined, size: 16),
-                label: const Text('Report a Problem'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AquaColors.warn.withOpacity(0.15),
-                  foregroundColor: AquaColors.warn,
-                  elevation: 0,
-                  side: BorderSide(color: AquaColors.warn.withOpacity(0.4)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
+          // ── Review ──────────────────────────────────────
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ReviewScreen()));
+              },
+              icon: const Icon(Icons.rate_review_outlined, size: 16),
+              label: const Text('Leave a Review'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AquaColors.accent.withOpacity(0.15),
+                foregroundColor: AquaColors.accent,
+                elevation: 0,
+                side: BorderSide(color: AquaColors.accent.withOpacity(0.4)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
-            const SizedBox(height: 8),
+          ),
+          const SizedBox(height: 8),
 
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await FirebaseAuth.instance.signOut();
-                  if (context.mounted) {
-                    Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()));
-                  }
-                },
-                icon: const Icon(Icons.logout_rounded, size: 16),
-                label: const Text('Sign Out'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFFF3B5C),
-                  side: const BorderSide(color: Color(0xFFFF3B5C)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
+          // ── Reclamation ──────────────────────────────────
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ReclamationScreen()));
+              },
+              icon: const Icon(Icons.report_problem_outlined, size: 16),
+              label: const Text('Report a Problem'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AquaColors.warn.withOpacity(0.15),
+                foregroundColor: AquaColors.warn,
+                elevation: 0,
+                side: BorderSide(color: AquaColors.warn.withOpacity(0.4)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+
+          // ── Sign Out ─────────────────────────────────────
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                Navigator.pop(context);
+                await FirebaseAuth.instance.signOut();
+                if (context.mounted) {
+                  Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()));
+                }
+              },
+              icon: const Icon(Icons.logout_rounded, size: 16),
+              label: const Text('Sign Out'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFFFF3B5C),
+                side: const BorderSide(color: Color(0xFFFF3B5C)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
