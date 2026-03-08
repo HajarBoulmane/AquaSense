@@ -15,6 +15,8 @@ import 'weather_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 import 'login_screen.dart';
+import 'review_screen.dart';
+
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -154,6 +156,15 @@ class _MainShellState extends State<MainShell> {
                 ),
               ),
             ]),
+            IconButton(
+  icon: const Icon(Icons.rate_review_outlined),
+  color: AquaColors.accent,
+  tooltip: 'Leave a Review',
+  onPressed: () => Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const ReviewScreen()),
+  ),
+),
 
           // User avatar
           GestureDetector(

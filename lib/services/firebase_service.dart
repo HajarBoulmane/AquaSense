@@ -2,6 +2,9 @@
 
 import 'package:firebase_database/firebase_database.dart';
 import '../models/sensor_model.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';  // ← ajouter cette ligne
+import '../models/sensor_model.dart';
 
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -9,6 +12,23 @@ class FirebaseService {
   FirebaseService._internal();
 
   final _db = FirebaseDatabase.instance;
+
+  Future<void> submitReview({
+    required int stars,
+    required String category,
+    required String comment,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    await _db.ref('reviews').push().set({
+      'stars':     stars,
+      'category':  category,
+      'comment':   comment,
+      'email':     user?.email ?? 'anonymous',
+      'userId':    user?.uid ?? '',
+      'userName':  user?.displayName ?? 'Unknown',
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+  }
 
   // ── Stream of all sensors (live updates) ──────────────────
   Stream<List<SensorModel>> sensorsStream() {
