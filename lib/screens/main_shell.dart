@@ -16,6 +16,7 @@ import 'history_screen.dart';
 import 'settings_screen.dart';
 import 'login_screen.dart';
 import 'review_screen.dart';
+import 'reclamation_screen.dart';   // ← add this
 
 
 class MainShell extends StatefulWidget {
@@ -64,8 +65,8 @@ class _MainShellState extends State<MainShell> {
   ];
 
   void _showProfileMenu(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    final name = user?.displayName ?? 'AquaSense User';
+    final user  = FirebaseAuth.instance.currentUser;
+    final name  = user?.displayName ?? 'AquaSense User';
     final email = user?.email ?? '';
 
     showDialog(
@@ -83,7 +84,30 @@ class _MainShellState extends State<MainShell> {
             const SizedBox(height: 4),
             Text(email,
               style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+
+            // ── Reclamation button inside profile menu ──────
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const ReclamationScreen()));
+                },
+                icon: const Icon(Icons.report_problem_outlined, size: 16),
+                label: const Text('Report a Problem'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AquaColors.warn.withOpacity(0.15),
+                  foregroundColor: AquaColors.warn,
+                  elevation: 0,
+                  side: BorderSide(color: AquaColors.warn.withOpacity(0.4)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -91,10 +115,8 @@ class _MainShellState extends State<MainShell> {
                   Navigator.pop(context);
                   await FirebaseAuth.instance.signOut();
                   if (context.mounted) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
+                    Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()));
                   }
                 },
                 icon: const Icon(Icons.logout_rounded, size: 16),
@@ -114,7 +136,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user          = FirebaseAuth.instance.currentUser;
     final criticalCount = _sensors
         .where((s) => s.status == SensorStatus.critical || !s.online)
         .length;
@@ -148,23 +170,30 @@ class _MainShellState extends State<MainShell> {
                 child: Container(
                   padding: const EdgeInsets.all(3),
                   decoration: const BoxDecoration(
-                    color: AquaColors.danger,
-                    shape: BoxShape.circle,
-                  ),
+                    color: AquaColors.danger, shape: BoxShape.circle),
                   child: Text('$criticalCount',
                     style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800)),
                 ),
               ),
             ]),
-            IconButton(
-  icon: const Icon(Icons.rate_review_outlined),
-  color: AquaColors.accent,
-  tooltip: 'Leave a Review',
-  onPressed: () => Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const ReviewScreen()),
-  ),
-),
+
+          // Review button
+          IconButton(
+            icon: const Icon(Icons.rate_review_outlined),
+            color: AquaColors.accent,
+            tooltip: 'Leave a Review',
+            onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const ReviewScreen())),
+          ),
+
+          // Reclamation button
+          IconButton(
+            icon: const Icon(Icons.report_problem_outlined),
+            color: AquaColors.warn,
+            tooltip: 'Report a Problem',
+            onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const ReclamationScreen())),
+          ),
 
           // User avatar
           GestureDetector(
@@ -211,7 +240,7 @@ class _AvatarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = user?.displayName ?? 'A';
+    final name     = user?.displayName ?? 'A';
     final photoUrl = user?.photoURL;
     final initials = name.trim().split(' ')
         .map((e) => e.isNotEmpty ? e[0] : '')
@@ -229,27 +258,21 @@ class _AvatarWidget extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00D4FF).withOpacity(0.3),
-            blurRadius: 8,
-          ),
+          BoxShadow(color: const Color(0xFF00D4FF).withOpacity(0.3), blurRadius: 8),
         ],
       ),
       child: photoUrl != null
           ? ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover))
-          : Center(
-              child: Text(initials,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: size * 0.35,
-                )),
-            ),
+          : Center(child: Text(initials,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: size * 0.35))),
     );
   }
 }
 
-// ── Simple InheritedWidget to pass sensors down ───────────────
+// ── SensorsProvider ───────────────────────────────────────────
 class SensorsProvider extends InheritedWidget {
   final List<SensorModel> sensors;
 
