@@ -17,8 +17,7 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sensors = SensorsProvider.of(context)?.sensors ?? [];
-
+    final sensors  = SensorsProvider.of(context)?.sensors ?? [];
     final totalVol = sensors.fold(0.0, (a, s) => a + s.volumeM3);
     final online   = sensors.where((s) => s.online).length;
     final critical = sensors.where((s) => s.status == SensorStatus.critical).length;
@@ -28,18 +27,13 @@ class DashboardScreen extends StatelessWidget {
       color: AquaColors.accent,
       backgroundColor: AquaColors.surface,
       onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      child: PageWrapper(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-          // ── Stats grid ──────────────────────────────────────
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 1.6,
+          // ── Stats grid — 4 cols on desktop, 2 on mobile ────────
+          ResponsiveGrid(
+            columns: R.statCols(context),
+            childAspect: R.isDesktop(context) ? 1.8 : 1.55,
             children: [
               StatCard(label: '💧 Total Water',    value: '${totalVol.round()} m³', color: AquaColors.accent),
               StatCard(label: '📡 Sensors Online', value: '$online/${sensors.length}', color: AquaColors.accent2),
@@ -47,104 +41,108 @@ class DashboardScreen extends StatelessWidget {
               StatCard(label: '⚠️ Warnings',       value: '$warned', color: AquaColors.warn),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-          // ── Level history chart ──────────────────────────────
-          if (sensors.isNotEmpty) ...[
-            AquaCard(
-              title: '📈 Level Overview',
-              child: SizedBox(
-                height: 180,
-                child: BarChart(
-                  BarChartData(
-                    barGroups: sensors.asMap().entries.map((e) {
-                      final s = e.value;
-                      final color = s.status == SensorStatus.critical
-                          ? AquaColors.danger
-                          : s.status == SensorStatus.warning
-                              ? AquaColors.warn
-                              : AquaColors.accent2;
-                      return BarChartGroupData(x: e.key, barRods: [
-                        BarChartRodData(
-                          toY: s.levelPct,
-                          color: color,
-                          width: 14,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ]);
-                    }).toList(),
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (v, _) => Text('${v.round()}%',
-                            style: TextStyle(fontSize: 9, color: AquaColors.muted)),
-                          reservedSize: 32,
-                        ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (v, _) {
-                            final i = v.toInt();
-                            if (i >= sensors.length) return const SizedBox();
-                            final name = sensors[i].name;
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                name.length > 8 ? '${name.substring(0, 7)}…' : name,
-                                style: TextStyle(fontSize: 8, color: AquaColors.muted),
-                              ),
-                            );
-                          },
-                          reservedSize: 28,
-                        ),
-                      ),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    gridData: FlGridData(
-                      getDrawingHorizontalLine: (_) =>
-                          FlLine(color: AquaColors.border, strokeWidth: 1),
-                    ),
-                    maxY: 100,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
+          // ── Chart + List — side-by-side on desktop ─────────────
+          if (sensors.isNotEmpty)
+            R.useTwoCols(context)
+                ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Expanded(flex: 3, child: _chartCard(context, sensors)),
+                    const SizedBox(width: 18),
+                    Expanded(flex: 2, child: _listCard(context, sensors)),
+                  ])
+                : Column(children: [
+                    _chartCard(context, sensors),
+                    const SizedBox(height: 16),
+                    _listCard(context, sensors),
+                  ]),
+
+          if (sensors.isEmpty) ...[
+            const SizedBox(height: 18),
+            _emptyState(),
           ],
-
-          // ── All sensors list ─────────────────────────────────
-          AquaCard(
-            title: '🗂️ All Monitored Points',
-            liveTag: true,
-            child: sensors.isEmpty
-                ? _emptyState()
-                : Column(
-                    children: sensors.map((s) => SensorListTile(
-                      sensor: s,
-                      onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => SensorDetailScreen(sensor: s))),
-                    )).toList(),
-                  ),
-          ),
-        ],
+        ]),
       ),
     );
   }
 
-  Widget _emptyState() => Padding(
-    padding: const EdgeInsets.all(32),
-    child: Column(
-      children: [
-        const Text('📡', style: TextStyle(fontSize: 40)),
-        const SizedBox(height: 8),
-        Text('Connecting to Firebase…',
-          style: TextStyle(color: AquaColors.muted, fontSize: 13)),
-      ],
-    ),
+  Widget _chartCard(BuildContext context, List<SensorModel> sensors) {
+    return AquaCard(
+      title: '📈 Level Overview',
+      child: SizedBox(
+        height: R.chartH(context),
+        child: BarChart(BarChartData(
+          barGroups: sensors.asMap().entries.map((e) {
+            final s = e.value;
+            final color = s.status == SensorStatus.critical
+                ? AquaColors.danger
+                : s.status == SensorStatus.warning
+                    ? AquaColors.warn : AquaColors.accent2;
+            return BarChartGroupData(x: e.key, barRods: [
+              BarChartRodData(
+                toY: s.levelPct, color: color, width: 14,
+                borderRadius: BorderRadius.circular(4)),
+            ]);
+          }).toList(),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (v, _) => Text('${v.round()}%',
+                style: TextStyle(fontSize: 9, color: AquaColors.muted)),
+              reservedSize: 32,
+            )),
+            bottomTitles: AxisTitles(sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (v, _) {
+                final i = v.toInt();
+                if (i >= sensors.length) return const SizedBox();
+                final name = sensors[i].name;
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    name.length > 8 ? '${name.substring(0, 7)}…' : name,
+                    style: TextStyle(fontSize: 8, color: AquaColors.muted)));
+              },
+              reservedSize: 28,
+            )),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          borderData: FlBorderData(show: false),
+          gridData: FlGridData(
+            getDrawingHorizontalLine: (_) =>
+                FlLine(color: AquaColors.border, strokeWidth: 1)),
+          maxY: 100,
+        )),
+      ),
+    );
+  }
+
+  Widget _listCard(BuildContext context, List<SensorModel> sensors) {
+    return AquaCard(
+      title: '🗂️ All Monitored Points',
+      liveTag: true,
+      child: Column(
+        children: sensors.map((s) => SensorListTile(
+          sensor: s,
+          onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => SensorDetailScreen(sensor: s))),
+        )).toList(),
+      ),
+    );
+  }
+
+  Widget _emptyState() => Container(
+    padding: const EdgeInsets.all(40),
+    decoration: BoxDecoration(
+      color: AquaColors.surface, borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: AquaColors.border)),
+    child: Center(child: Column(children: [
+      const Text('📡', style: TextStyle(fontSize: 40)),
+      const SizedBox(height: 10),
+      Text('Connecting to Firebase…',
+        style: TextStyle(color: AquaColors.muted, fontSize: 13)),
+    ])),
   );
 }
 
@@ -155,8 +153,8 @@ class _UserProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = user?.displayName ?? 'AquaSense User';
-    final email = user?.email ?? '';
+    final name     = user?.displayName ?? 'AquaSense User';
+    final email    = user?.email ?? '';
     final photoUrl = user?.photoURL;
     final initials = name.isNotEmpty
         ? name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase()
@@ -175,72 +173,59 @@ class _UserProfileCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF00D4FF).withOpacity(0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
+            blurRadius: 16, offset: const Offset(0, 4)),
         ],
       ),
-      child: Row(
-        children: [
+      child: Row(children: [
+        Container(
+          width: 52, height: 52,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              colors: [Color(0xFF00D4FF), Color(0xFF0077B6)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(color: const Color(0xFF00D4FF).withOpacity(0.3), blurRadius: 10),
+            ],
+          ),
+          child: photoUrl != null
+              ? ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover))
+              : Center(child: Text(initials,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18))),
+        ),
+        const SizedBox(width: 14),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(name,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+          const SizedBox(height: 3),
+          Text(email,
+            style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
+          const SizedBox(height: 6),
           Container(
-            width: 52, height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Color(0xFF00D4FF), Color(0xFF0077B6)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(color: const Color(0xFF00D4FF).withOpacity(0.3), blurRadius: 10),
-              ],
+              color: const Color(0xFF00D4FF).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF00D4FF).withOpacity(0.3)),
             ),
-            child: photoUrl != null
-                ? ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover))
-                : Center(
-                    child: Text(initials,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18)),
-                  ),
+            child: const Text('● Active Session',
+              style: TextStyle(color: Color(0xFF00D4FF), fontSize: 10, fontWeight: FontWeight.w600)),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
-                const SizedBox(height: 3),
-                Text(email,
-                  style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF00D4FF).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF00D4FF).withOpacity(0.3)),
-                  ),
-                  child: const Text('● Active Session',
-                    style: TextStyle(color: Color(0xFF00D4FF), fontSize: 10, fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            tooltip: 'Sign Out',
-            icon: const Icon(Icons.logout_rounded, color: Colors.white38, size: 20),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              if (context.mounted) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              }
-            },
-          ),
-        ],
-      ),
+        ])),
+        IconButton(
+          tooltip: 'Sign Out',
+          icon: const Icon(Icons.logout_rounded, color: Colors.white38, size: 20),
+          onPressed: () async {
+            await FirebaseAuth.instance.signOut();
+            if (context.mounted) {
+              Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()));
+            }
+          },
+        ),
+      ]),
     );
   }
 }
@@ -251,32 +236,30 @@ class AquaCard extends StatelessWidget {
   final Widget child;
   final bool liveTag;
 
-  const AquaCard({super.key, required this.title, required this.child, this.liveTag = false});
+  const AquaCard({super.key, required this.title, required this.child,
+    this.liveTag = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(R.isDesktop(context) ? 20 : 16),
       decoration: BoxDecoration(
-        color: AquaColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AquaColors.border),
-      ),
+        color: AquaColors.surface, borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AquaColors.border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(title,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: R.isDesktop(context) ? 15 : 14))),
+          Expanded(child: Text(title, style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: R.isDesktop(context) ? 15 : 14))),
           if (liveTag)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: AquaColors.accent2.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AquaColors.accent2.withOpacity(0.3)),
-              ),
-              child: Text('● LIVE',
-                style: TextStyle(fontSize: 10, color: AquaColors.accent2, fontWeight: FontWeight.w700)),
-            ),
+                border: Border.all(color: AquaColors.accent2.withOpacity(0.3))),
+              child: Text('● LIVE', style: TextStyle(
+                fontSize: 10, color: AquaColors.accent2, fontWeight: FontWeight.w700))),
         ]),
         const SizedBox(height: 14),
         child,
