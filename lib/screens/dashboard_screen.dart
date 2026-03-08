@@ -19,10 +19,10 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final sensors = SensorsProvider.of(context)?.sensors ?? [];
 
-    final totalVol  = sensors.fold(0.0, (a, s) => a + s.volumeM3);
-    final online    = sensors.where((s) => s.online).length;
-    final critical  = sensors.where((s) => s.status == SensorStatus.critical).length;
-    final warned    = sensors.where((s) => s.status == SensorStatus.warning).length;
+    final totalVol = sensors.fold(0.0, (a, s) => a + s.volumeM3);
+    final online   = sensors.where((s) => s.online).length;
+    final critical = sensors.where((s) => s.status == SensorStatus.critical).length;
+    final warned   = sensors.where((s) => s.status == SensorStatus.warning).length;
 
     return RefreshIndicator(
       color: AquaColors.accent,
@@ -41,17 +41,17 @@ class DashboardScreen extends StatelessWidget {
             mainAxisSpacing: 10,
             childAspectRatio: 1.6,
             children: [
-              StatCard(label: '💧 Total Water',     value: '${totalVol.round()} m³', color: AquaColors.accent),
-              StatCard(label: '📡 Sensors Online',  value: '$online/${sensors.length}', color: AquaColors.accent2),
-              StatCard(label: '🚨 Critical Wells',  value: '$critical', color: AquaColors.danger),
-              StatCard(label: '⚠️ Warnings',        value: '$warned',   color: AquaColors.warn),
+              StatCard(label: '💧 Total Water',    value: '${totalVol.round()} m³', color: AquaColors.accent),
+              StatCard(label: '📡 Sensors Online', value: '$online/${sensors.length}', color: AquaColors.accent2),
+              StatCard(label: '🚨 Critical Wells', value: '$critical', color: AquaColors.danger),
+              StatCard(label: '⚠️ Warnings',       value: '$warned', color: AquaColors.warn),
             ],
           ),
           const SizedBox(height: 16),
 
           // ── Level history chart ──────────────────────────────
           if (sensors.isNotEmpty) ...[
-            _AquaCard(
+            AquaCard(
               title: '📈 Level Overview',
               child: SizedBox(
                 height: 180,
@@ -92,7 +92,7 @@ class DashboardScreen extends StatelessWidget {
                             return Padding(
                               padding: const EdgeInsets.only(top: 4),
                               child: Text(
-                                name.length > 8 ? '${name.substring(0,7)}…' : name,
+                                name.length > 8 ? '${name.substring(0, 7)}…' : name,
                                 style: TextStyle(fontSize: 8, color: AquaColors.muted),
                               ),
                             );
@@ -100,13 +100,13 @@ class DashboardScreen extends StatelessWidget {
                           reservedSize: 28,
                         ),
                       ),
-                      rightTitles:  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles:    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     ),
                     borderData: FlBorderData(show: false),
-                    gridData:   FlGridData(
+                    gridData: FlGridData(
                       getDrawingHorizontalLine: (_) =>
-                        FlLine(color: AquaColors.border, strokeWidth: 1),
+                          FlLine(color: AquaColors.border, strokeWidth: 1),
                     ),
                     maxY: 100,
                   ),
@@ -117,18 +117,18 @@ class DashboardScreen extends StatelessWidget {
           ],
 
           // ── All sensors list ─────────────────────────────────
-          _AquaCard(
+          AquaCard(
             title: '🗂️ All Monitored Points',
             liveTag: true,
             child: sensors.isEmpty
-              ? _emptyState()
-              : Column(
-                  children: sensors.map((s) => SensorListTile(
-                    sensor: s,
-                    onTap: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => SensorDetailScreen(sensor: s))),
-                  )).toList(),
-                ),
+                ? _emptyState()
+                : Column(
+                    children: sensors.map((s) => SensorListTile(
+                      sensor: s,
+                      onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => SensorDetailScreen(sensor: s))),
+                    )).toList(),
+                  ),
           ),
         ],
       ),
@@ -137,12 +137,14 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _emptyState() => Padding(
     padding: const EdgeInsets.all(32),
-    child: Column(children: [
-      Text('📡', style: TextStyle(fontSize: 40)),
-      const SizedBox(height: 8),
-      Text('Connecting to Firebase…',
-        style: TextStyle(color: AquaColors.muted, fontSize: 13)),
-    ])),
+    child: Column(
+      children: [
+        const Text('📡', style: TextStyle(fontSize: 40)),
+        const SizedBox(height: 8),
+        Text('Connecting to Firebase…',
+          style: TextStyle(color: AquaColors.muted, fontSize: 13)),
+      ],
+    ),
   );
 }
 
@@ -180,7 +182,6 @@ class _UserProfileCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Avatar
           Container(
             width: 52, height: 52,
             decoration: BoxDecoration(
@@ -191,42 +192,26 @@ class _UserProfileCard extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF00D4FF).withOpacity(0.3),
-                  blurRadius: 10,
-                ),
+                BoxShadow(color: const Color(0xFF00D4FF).withOpacity(0.3), blurRadius: 10),
               ],
             ),
             child: photoUrl != null
                 ? ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover))
                 : Center(
                     child: Text(initials,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                      )),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18)),
                   ),
           ),
           const SizedBox(width: 14),
-
-          // Name & email
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                  )),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
                 const SizedBox(height: 3),
                 Text(email,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.45),
-                    fontSize: 12,
-                  )),
+                  style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -236,17 +221,11 @@ class _UserProfileCard extends StatelessWidget {
                     border: Border.all(color: const Color(0xFF00D4FF).withOpacity(0.3)),
                   ),
                   child: const Text('● Active Session',
-                    style: TextStyle(
-                      color: Color(0xFF00D4FF),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    )),
+                    style: TextStyle(color: Color(0xFF00D4FF), fontSize: 10, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),
           ),
-
-          // Sign out button
           IconButton(
             tooltip: 'Sign Out',
             icon: const Icon(Icons.logout_rounded, color: Colors.white38, size: 20),
@@ -266,36 +245,38 @@ class _UserProfileCard extends StatelessWidget {
   }
 }
 
-// ── Reusable AquaCard — exported for other screens ───────
+// ── Reusable AquaCard — exported for other screens ───────────
 class AquaCard extends StatelessWidget {
   final String title;
   final Widget child;
   final bool liveTag;
 
-  const AquaCard({super.key, required this.title, required this.child,
-    this.liveTag = false});
+  const AquaCard({super.key, required this.title, required this.child, this.liveTag = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(R.isDesktop(context) ? 20 : 16),
       decoration: BoxDecoration(
-        color: AquaColors.surface, borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AquaColors.border)),
+        color: AquaColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AquaColors.border),
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(title, style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: R.isDesktop(context) ? 15 : 14))),
+          Expanded(child: Text(title,
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: R.isDesktop(context) ? 15 : 14))),
           if (liveTag)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: AquaColors.accent2.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AquaColors.accent2.withOpacity(0.3))),
-              child: Text('● LIVE', style: TextStyle(
-                fontSize: 10, color: AquaColors.accent2, fontWeight: FontWeight.w700))),
+                border: Border.all(color: AquaColors.accent2.withOpacity(0.3)),
+              ),
+              child: Text('● LIVE',
+                style: TextStyle(fontSize: 10, color: AquaColors.accent2, fontWeight: FontWeight.w700)),
+            ),
         ]),
         const SizedBox(height: 14),
         child,
