@@ -52,10 +52,12 @@ class MapScreen extends StatelessWidget {
         maxZoom: 14,
       ),
       children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'com.aquasense.app',
-        ),
+TileLayer(
+  urlTemplate: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=ar&gl=ma',
+  subdomains: const ['0', '1', '2', '3'],
+  userAgentPackageName: 'com.aquasense.app',
+  tileProvider: NetworkTileProvider(),
+),
         MarkerLayer(
           markers: sensors.map((s) {
             final color = s.status.color;
