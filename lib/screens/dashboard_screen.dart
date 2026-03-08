@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../models/sensor_model.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/sensor_list_tile.dart';
+import '../utils/responsive.dart';
 import 'main_shell.dart';
 import 'sensor_detail_screen.dart';
 import 'login_screen.dart';
@@ -17,12 +18,11 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sensors = SensorsProvider.of(context)?.sensors ?? [];
-    final user = FirebaseAuth.instance.currentUser;
 
-    final totalVol = sensors.fold(0.0, (a, s) => a + s.volumeM3);
-    final online   = sensors.where((s) => s.online).length;
-    final critical = sensors.where((s) => s.status == SensorStatus.critical).length;
-    final warned   = sensors.where((s) => s.status == SensorStatus.warning).length;
+    final totalVol  = sensors.fold(0.0, (a, s) => a + s.volumeM3);
+    final online    = sensors.where((s) => s.online).length;
+    final critical  = sensors.where((s) => s.status == SensorStatus.critical).length;
+    final warned    = sensors.where((s) => s.status == SensorStatus.warning).length;
 
     return RefreshIndicator(
       color: AquaColors.accent,
@@ -31,10 +31,6 @@ class DashboardScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-
-          // ── User profile card ────────────────────────────────
-          _UserProfileCard(user: user),
-          const SizedBox(height: 16),
 
           // ── Stats grid ──────────────────────────────────────
           GridView.count(
@@ -45,10 +41,10 @@ class DashboardScreen extends StatelessWidget {
             mainAxisSpacing: 10,
             childAspectRatio: 1.6,
             children: [
-              StatCard(label: '💧 Total Water',    value: '${totalVol.round()} m³', color: AquaColors.accent),
-              StatCard(label: '📡 Sensors Online', value: '$online/${sensors.length}', color: AquaColors.accent2),
-              StatCard(label: '🚨 Critical Wells', value: '$critical', color: AquaColors.danger),
-              StatCard(label: '⚠️ Warnings',       value: '$warned', color: AquaColors.warn),
+              StatCard(label: '💧 Total Water',     value: '${totalVol.round()} m³', color: AquaColors.accent),
+              StatCard(label: '📡 Sensors Online',  value: '$online/${sensors.length}', color: AquaColors.accent2),
+              StatCard(label: '🚨 Critical Wells',  value: '$critical', color: AquaColors.danger),
+              StatCard(label: '⚠️ Warnings',        value: '$warned',   color: AquaColors.warn),
             ],
           ),
           const SizedBox(height: 16),
@@ -96,7 +92,7 @@ class DashboardScreen extends StatelessWidget {
                             return Padding(
                               padding: const EdgeInsets.only(top: 4),
                               child: Text(
-                                name.length > 8 ? '${name.substring(0, 7)}…' : name,
+                                name.length > 8 ? '${name.substring(0,7)}…' : name,
                                 style: TextStyle(fontSize: 8, color: AquaColors.muted),
                               ),
                             );
@@ -104,13 +100,13 @@ class DashboardScreen extends StatelessWidget {
                           reservedSize: 28,
                         ),
                       ),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles:  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles:    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     ),
                     borderData: FlBorderData(show: false),
-                    gridData: FlGridData(
+                    gridData:   FlGridData(
                       getDrawingHorizontalLine: (_) =>
-                          FlLine(color: AquaColors.border, strokeWidth: 1),
+                        FlLine(color: AquaColors.border, strokeWidth: 1),
                     ),
                     maxY: 100,
                   ),
@@ -125,14 +121,14 @@ class DashboardScreen extends StatelessWidget {
             title: '🗂️ All Monitored Points',
             liveTag: true,
             child: sensors.isEmpty
-                ? _emptyState()
-                : Column(
-                    children: sensors.map((s) => SensorListTile(
-                      sensor: s,
-                      onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => SensorDetailScreen(sensor: s))),
-                    )).toList(),
-                  ),
+              ? _emptyState()
+              : Column(
+                  children: sensors.map((s) => SensorListTile(
+                    sensor: s,
+                    onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => SensorDetailScreen(sensor: s))),
+                  )).toList(),
+                ),
           ),
         ],
       ),
@@ -142,11 +138,11 @@ class DashboardScreen extends StatelessWidget {
   Widget _emptyState() => Padding(
     padding: const EdgeInsets.all(32),
     child: Column(children: [
-      const Text('📡', style: TextStyle(fontSize: 40)),
+      Text('📡', style: TextStyle(fontSize: 40)),
       const SizedBox(height: 8),
       Text('Connecting to Firebase…',
         style: TextStyle(color: AquaColors.muted, fontSize: 13)),
-    ]),
+    ])),
   );
 }
 
@@ -270,38 +266,36 @@ class _UserProfileCard extends StatelessWidget {
   }
 }
 
-// ── Reusable card ─────────────────────────────────────────────
-class _AquaCard extends StatelessWidget {
+// ── Reusable AquaCard — exported for other screens ───────
+class AquaCard extends StatelessWidget {
   final String title;
   final Widget child;
   final bool liveTag;
 
-  const _AquaCard({required this.title, required this.child, this.liveTag = false});
+  const AquaCard({super.key, required this.title, required this.child,
+    this.liveTag = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(R.isDesktop(context) ? 20 : 16),
       decoration: BoxDecoration(
-        color: AquaColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AquaColors.border),
-      ),
+        color: AquaColors.surface, borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AquaColors.border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(title,
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
+          Expanded(child: Text(title, style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: R.isDesktop(context) ? 15 : 14))),
           if (liveTag)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: AquaColors.accent2.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AquaColors.accent2.withOpacity(0.3)),
-              ),
-              child: Text('● LIVE',
-                style: TextStyle(fontSize: 10, color: AquaColors.accent2, fontWeight: FontWeight.w700)),
-            ),
+                border: Border.all(color: AquaColors.accent2.withOpacity(0.3))),
+              child: Text('● LIVE', style: TextStyle(
+                fontSize: 10, color: AquaColors.accent2, fontWeight: FontWeight.w700))),
         ]),
         const SizedBox(height: 14),
         child,

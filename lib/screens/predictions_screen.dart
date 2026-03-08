@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 import '../models/sensor_model.dart';
 import 'main_shell.dart';
 
@@ -19,12 +20,15 @@ class PredictionsScreen extends StatelessWidget {
     final sensors = SensorsProvider.of(context)?.sensors ?? [];
     final sorted  = [...sensors]..sort((a, b) => a.levelPct.compareTo(b.levelPct));
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: R.maxW(context)),
+        child: ListView(
+          padding: EdgeInsets.all(R.pad(context)),
+          children: [
         // ── Insights ─────────────────────────────────────────
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(R.pad(context)),
           decoration: BoxDecoration(
             color: AquaColors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -41,7 +45,7 @@ class PredictionsScreen extends StatelessWidget {
 
         // ── 30-day forecast chart ─────────────────────────────
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(R.pad(context)),
           decoration: BoxDecoration(
             color: AquaColors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -99,7 +103,7 @@ class PredictionsScreen extends StatelessWidget {
 
         // ── Shortage probability bars ─────────────────────────
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(R.pad(context)),
           decoration: BoxDecoration(
             color: AquaColors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -136,7 +140,9 @@ class PredictionsScreen extends StatelessWidget {
             }),
           ]),
         ),
-      ],
+        ],
+        ),
+      ),
     );
   }
 }

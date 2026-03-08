@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 import '../models/sensor_model.dart';
 import '../widgets/sensor_list_tile.dart';
 import 'main_shell.dart';
@@ -42,7 +43,7 @@ class _WellsScreenState extends State<WellsScreen> {
         child: sensors.isEmpty
           ? Center(child: Text('No sensors found', style: TextStyle(color: AquaColors.muted)))
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(R.pad(context)),
               itemCount: sensors.length,
               itemBuilder: (_, i) => SensorListTile(
                 sensor: sensors[i],

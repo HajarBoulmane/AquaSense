@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/responsive.dart';
 import '../models/sensor_model.dart';
-import '../services/firebase_service.dart';
 import '../widgets/stat_card.dart';
 import 'main_shell.dart';
 
@@ -40,115 +40,100 @@ class AlertsScreen extends StatelessWidget {
       }
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Stats
-        GridView.count(
-          crossAxisCount: 4,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 8, mainAxisSpacing: 8,
-          childAspectRatio: 1.2,
+    final critCount  = alerts.where((a) => a.type == 'danger').length;
+    final warnCount  = alerts.where((a) => a.type == 'warn').length;
+    final normalCount = sensors.where((s) => s.status == SensorStatus.ok).length;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: R.maxW(context)),
+        child: ListView(
+          padding: EdgeInsets.all(R.pad(context)),
           children: [
-            StatCard(label: '🔴 Critical', value: '${alerts.where((a)=>a.type=='danger').length}', color: AquaColors.danger),
-            StatCard(label: '🟡 Warnings', value: '${alerts.where((a)=>a.type=='warn').length}',   color: AquaColors.warn),
-            StatCard(label: '🔵 Info',     value: '0',                                              color: AquaColors.accent),
-            StatCard(label: '✅ Normal',   value: '${sensors.where((s)=>s.status==SensorStatus.ok).length}', color: AquaColors.accent2),
+
+            // ── Stats ───────────────────────────────────────────
+            GridView.count(
+              crossAxisCount: R.statCols(context),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 10, mainAxisSpacing: 10,
+              childAspectRatio: R.isDesktop(context) ? 1.8 : 1.5,
+              children: [
+                StatCard(label: '🔴 Critical', value: '$critCount',  color: AquaColors.danger),
+                StatCard(label: '🟡 Warnings', value: '$warnCount',  color: AquaColors.warn),
+                StatCard(label: '🔵 Info',     value: '0',           color: AquaColors.accent),
+                StatCard(label: '✅ Normal',   value: '$normalCount', color: AquaColors.accent2),
+              ],
+            ),
+            const SizedBox(height: 18),
+
+            // ── Alert feed ───────────────────────────────────────
+            if (alerts.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(40),
+                decoration: BoxDecoration(
+                  color: AquaColors.surface,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AquaColors.border),
+                ),
+                child: Column(children: [
+                  const Text('✅', style: TextStyle(fontSize: 40)),
+                  const SizedBox(height: 10),
+                  Text('All sensors normal',
+                    style: TextStyle(color: AquaColors.muted, fontSize: 14)),
+                ]),
+              )
+            else
+              ...alerts.map((a) => _AlertCard(alert: a)),
           ],
         ),
-        const SizedBox(height: 16),
-
-        // Alert feed
-        if (alerts.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: AquaColors.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AquaColors.border),
-            ),
-            child: Column(children: [
-              const Text('✅', style: TextStyle(fontSize: 40)),
-              const SizedBox(height: 8),
-              Text('All sensors normal', style: TextStyle(color: AquaColors.muted)),
-            ]),
-          )
-        else
-          ...alerts.map((a) => _AlertCard(alert: a)),
-      ],
+      ),
     );
   }
 }
 
+// ── Data model ────────────────────────────────────────────
 class _Alert {
   final String type, icon, title, body, time;
   final SensorModel sensor;
-  _Alert({required this.type, required this.icon, required this.title,
-          required this.body, required this.time, required this.sensor});
+  const _Alert({
+    required this.type, required this.icon, required this.title,
+    required this.body, required this.time, required this.sensor,
+  });
 }
 
-class _AlertCard extends StatefulWidget {
+// ── Alert card widget ─────────────────────────────────────
+class _AlertCard extends StatelessWidget {
   final _Alert alert;
-  const _AlertCard({required this.alert});
-  @override State<_AlertCard> createState() => _AlertCardState();
-}
-
-class _AlertCardState extends State<_AlertCard> {
-  bool _dismissed = false;
+  const _AlertCard({super.key, required this.alert});
 
   @override
   Widget build(BuildContext context) {
-    if (_dismissed) return const SizedBox.shrink();
-    final color = widget.alert.type == 'danger' ? AquaColors.danger : AquaColors.warn;
+    final isDanger = alert.type == 'danger';
+    final color    = isDanger ? AquaColors.danger : AquaColors.warn;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
+        color: color.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border(left: BorderSide(color: color, width: 4)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(widget.alert.icon, style: const TextStyle(fontSize: 24)),
+        Text(alert.icon, style: const TextStyle(fontSize: 22)),
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(widget.alert.title,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: color)),
+          Text(alert.title,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          Text(widget.alert.body, style: TextStyle(fontSize: 12, color: AquaColors.muted)),
-          const SizedBox(height: 4),
-          Text('🕐 ${widget.alert.time}', style: TextStyle(fontSize: 11, color: AquaColors.muted)),
-          const SizedBox(height: 10),
-          Row(children: [
-            _actionBtn('Acknowledge', AquaColors.accent,
-              () => setState(() => _dismissed = true)),
-            const SizedBox(width: 8),
-            _actionBtn('Notify Authorities', AquaColors.warn, () async {
-              await FirebaseService().notifyAuthorities(widget.alert.title);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('📤 Authorities notified!')));
-              }
-            }),
-          ]),
+          Text(alert.body,
+            style: TextStyle(fontSize: 12, color: AquaColors.muted, height: 1.5)),
+          const SizedBox(height: 6),
+          Text(alert.time,
+            style: TextStyle(fontSize: 10, color: AquaColors.muted)),
         ])),
       ]),
     );
   }
-
-  Widget _actionBtn(String label, Color color, VoidCallback onTap) =>
-    GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.4)),
-        ),
-        child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w700)),
-      ),
-    );
 }
